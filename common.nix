@@ -55,11 +55,6 @@
         haskellPackages = super.haskellPackages.override {
           overrides = self: super:
           {
-            xmonad-contrib = pkgs.lib.overrideDerivation super.xmonad-contrib
-              (old: {
-                 src = /home/hinton/code/xmonad-contrib;
-              });
-
             xmonad = pkgs.lib.overrideDerivation super.xmonad
               (old : {
               src =  pkgs.fetchgit {
