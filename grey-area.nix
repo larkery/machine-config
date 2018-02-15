@@ -8,6 +8,8 @@
       ./trackpoint.nix
       ./autofs.nix
       ./ppp.nix
+      ./sysctls.nix
+      ./syncthing.nix
     ];
 
   boot.loader.systemd-boot.enable = true;
@@ -48,13 +50,6 @@
         sha256 = "0sf92knqkvqmfhrbz4vlsagzqlps72wycpmln5dygicg07a0a8q7";
       };
     });
-  };
-
-  services.syncthing = {
-    enable = true;
-    dataDir = "/home/hinton/.config/syncthing";
-    user = "hinton";
-    group = "users";
   };
 
   services.printing.enable = true;
