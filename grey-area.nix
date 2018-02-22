@@ -10,6 +10,7 @@
       ./ppp.nix
       ./sysctls.nix
       ./syncthing.nix
+      ./pulseaudio.nix
     ];
 
   boot.loader.systemd-boot.enable = true;
@@ -37,19 +38,6 @@
         routes = [ "10.0.0.0/8" "172.16.10.2/24" ];
       };
     };
-  };
-
-  hardware.pulseaudio = {
-    zeroconf.discovery.enable = true;
-    enable = true;
-    support32Bit = true;
-    package = pkgs.pulseaudioFull.overrideAttrs (oldAttrs : rec {
-      version = "11.0";
-      src = pkgs.fetchurl {
-        url = "http://freedesktop.org/software/pulseaudio/releases/pulseaudio-${version}.tar.xz";
-        sha256 = "0sf92knqkvqmfhrbz4vlsagzqlps72wycpmln5dygicg07a0a8q7";
-      };
-    });
   };
 
   services.printing.enable = true;
