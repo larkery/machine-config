@@ -9,6 +9,7 @@
       ./autofs.nix
       ./sysctls.nix
       ./syncthing.nix
+      ./pulseaudio.nix
     ];
 
   boot.loader.systemd-boot.enable = true;
