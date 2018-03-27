@@ -8,7 +8,12 @@
 
   time.timeZone = "Europe/London";
 
-  environment.systemPackages = with pkgs; [zsh];
+  environment.systemPackages = with pkgs; [
+    zsh
+    hicolor_icon_theme
+    oxygen
+    numix-icon-theme
+  ];
 
   security.wrappers.slock = {
     source = "${pkgs.slock}/bin/slock";
@@ -77,14 +82,17 @@
       enable = true;
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
-      windowManager.default = "xmonad";
+      windowManager.default = "awesome";
 
       desktopManager.xterm.enable = false;
 
-      windowManager.xmonad = {
-        enable = true;
-        enableContribAndExtras = true;
-      };
+      windowManager.awesome.enable = true;
+      windowManager.awesome.luaModules = [pkgs.luaPackages.luasqlite3];
+
+      # windowManager.xmonad = {
+      #   enable = true;
+      #   enableContribAndExtras = true;
+      # };
 
       synaptics = {
         enable = true;
@@ -92,9 +100,12 @@
         twoFingerScroll = true;
       };
 
-      displayManager.lightdm.enable = true;
-      displayManager.lightdm.autoLogin.enable = true;
-      displayManager.lightdm.autoLogin.user = "hinton";
+      displayManager.auto.enable = true;
+      displayManager.auto.user = "hinton";
+
+#      displayManager.lightdm.enable = true;
+#      displayManager.lightdm.autoLogin.enable = true;
+#      displayManager.lightdm.autoLogin.user = "hinton";
 
     };
   };
