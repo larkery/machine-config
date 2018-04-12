@@ -57,6 +57,18 @@
   nixpkgs.overlays = [
     (self: super:
       {
+        compton = super.compton.overrideAttrs (_:
+          {
+            name = "compton-custom-hinton";
+            src =
+              super.fetchgit {
+              url = "https://github.com/larkery/compton.git";
+              rev = "3a28338cd8bd51188dbf000bfdf9404502a26ac8";
+              sha256 = "07lyw2df9cjcjmjjv1j70m1j4k8r9hbqivxb2vp4fl8zrxb2rq38";
+            };
+          }
+        );
+
         haskellPackages = super.haskellPackages.override {
           overrides = self: super:
           {

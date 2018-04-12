@@ -16,6 +16,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
 
+  programs.adb.enable = true;
+
   virtualisation.virtualbox.host.enable = true;
 
   hardware.pulseaudio.zeroconf.discovery.enable = true;
