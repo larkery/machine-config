@@ -78,8 +78,9 @@
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
       windowManager.default = "xmonad";
+      windowManager.awesome.enable = true;
 
-      desktopManager.xterm.enable = false;
+      desktopManager.xterm.enable = true;
 
       windowManager.xmonad = {
         enable = true;
@@ -92,9 +93,9 @@
         twoFingerScroll = true;
       };
 
-      displayManager.lightdm.enable = true;
-      displayManager.lightdm.autoLogin.enable = true;
-      displayManager.lightdm.autoLogin.user = "hinton";
+#      displayManager.lightdm.enable = true;
+#      displayManager.lightdm.autoLogin.enable = true;
+#      displayManager.lightdm.autoLogin.user = "hinton";
 
     };
   };

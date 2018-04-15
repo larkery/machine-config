@@ -17,6 +17,10 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
 
+  services.logind.extraConfig = ''
+    HandlePowerKey=hibernate
+  '';
+
   boot.initrd.luks.devices = [
     { name = "root"; device = "/dev/sda2"; preLVM = true; allowDiscards = true; }
   ];
