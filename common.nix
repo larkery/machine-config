@@ -8,7 +8,12 @@
 
   time.timeZone = "Europe/London";
 
-  environment.systemPackages = with pkgs; [zsh];
+  environment.systemPackages = with pkgs; [
+    zsh
+    hicolor_icon_theme
+    oxygen
+    numix-icon-theme
+  ];
 
   security.wrappers.slock = {
     source = "${pkgs.slock}/bin/slock";
@@ -52,6 +57,18 @@
   nixpkgs.overlays = [
     (self: super:
       {
+        compton = super.compton.overrideAttrs (_:
+          {
+            name = "compton-custom-hinton";
+            src =
+              super.fetchgit {
+              url = "https://github.com/larkery/compton.git";
+              rev = "3a28338cd8bd51188dbf000bfdf9404502a26ac8";
+              sha256 = "07lyw2df9cjcjmjjv1j70m1j4k8r9hbqivxb2vp4fl8zrxb2rq38";
+            };
+          }
+        );
+
         haskellPackages = super.haskellPackages.override {
           overrides = self: super:
           {
@@ -77,21 +94,25 @@
       enable = true;
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
-      windowManager.default = "xmonad";
-      windowManager.awesome.enable = true;
+      windowManager.default = "awesome";
 
       desktopManager.xterm.enable = true;
 
-      windowManager.xmonad = {
-        enable = true;
-        enableContribAndExtras = true;
-      };
+      windowManager.awesome.enable = true;
+      windowManager.awesome.luaModules = [pkgs.luaPackages.luasqlite3];
+
+      # windowManager.xmonad = {
+      #   enable = true;
+      #   enableContribAndExtras = true;
+      # };
 
       synaptics = {
         enable = true;
         vertEdgeScroll = false;
         twoFingerScroll = true;
       };
+      displayManager.auto.enable = true;
+      displayManager.auto.user = "hinton";
 
 #      displayManager.lightdm.enable = true;
 #      displayManager.lightdm.autoLogin.enable = true;
