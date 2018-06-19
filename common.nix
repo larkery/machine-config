@@ -65,7 +65,7 @@
       xkbOptions = "ctrl:nocaps";
       windowManager.default = "xmonad";
 
-      desktopManager.xterm.enable = false;
+      desktopManager.xterm.enable = true;
 
       windowManager.xmonad = {
         enable = true;
@@ -77,7 +77,6 @@
         vertEdgeScroll = false;
         twoFingerScroll = true;
       };
-
       displayManager.auto.enable = true;
       displayManager.auto.user = "hinton";
     };
