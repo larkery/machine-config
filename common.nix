@@ -54,37 +54,6 @@
   fonts.fontconfig.defaultFonts.sansSerif = ["DejaVu Sans"];
 
 
-  nixpkgs.overlays = [
-    (self: super:
-      {
-        compton = super.compton.overrideAttrs (_:
-          {
-            name = "compton-custom-hinton";
-            src =
-              super.fetchgit {
-              url = "https://github.com/larkery/compton.git";
-              rev = "3a28338cd8bd51188dbf000bfdf9404502a26ac8";
-              sha256 = "07lyw2df9cjcjmjjv1j70m1j4k8r9hbqivxb2vp4fl8zrxb2rq38";
-            };
-          }
-        );
-
-        haskellPackages = super.haskellPackages.override {
-          overrides = self: super:
-          {
-            xmonad = pkgs.lib.overrideDerivation super.xmonad
-              (old : {
-              src =  pkgs.fetchgit {
-                url = "https://github.com/larkery/xmonad-1.git";
-                rev = "9570174e635c5f49bebe90d04ae9dde25678b8a5";
-                sha256 = "1ii2axbcj86k2ckdjj9581g1d5drhp8qr6bdv0xj340k0f02a4ac";
-              };
-            });
-          };
-        };
-      }
-    )];
-
   services = {
     acpid.enable = true;
     tlp.enable = true;
@@ -94,17 +63,14 @@
       enable = true;
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
-      windowManager.default = "awesome";
+      windowManager.default = "xmonad";
 
       desktopManager.xterm.enable = false;
 
-      windowManager.awesome.enable = true;
-      windowManager.awesome.luaModules = [pkgs.luaPackages.luasqlite3];
-
-      # windowManager.xmonad = {
-      #   enable = true;
-      #   enableContribAndExtras = true;
-      # };
+      windowManager.xmonad = {
+        enable = true;
+        enableContribAndExtras = true;
+      };
 
       synaptics = {
         enable = true;
@@ -114,11 +80,6 @@
 
       displayManager.auto.enable = true;
       displayManager.auto.user = "hinton";
-
-#      displayManager.lightdm.enable = true;
-#      displayManager.lightdm.autoLogin.enable = true;
-#      displayManager.lightdm.autoLogin.user = "hinton";
-
     };
   };
 
