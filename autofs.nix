@@ -35,8 +35,8 @@
             CREDS=",credentials=$CREDS_FIFO"
          fi
       fi
-
-      UNC="://$MOUNT_HOST/$MOUNT_SHARE"
+      IPADDR=$(${pkgs.fping}/bin/fping -m "$MOUNT_HOST" -A -a | head -n 1)
+      UNC="://''${IPADDR:-$MOUNT_HOST}/$MOUNT_SHARE"
       echo '-fstype=cifs,echo_interval=20,vers=2.1,uid=$UID'"$CREDS"' '"$UNC"
     '';
   in top;

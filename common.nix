@@ -64,6 +64,7 @@
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
       windowManager.default = "xmonad";
+      desktopManager.default = "none";
 
       desktopManager.xterm.enable = true;
 
@@ -77,6 +78,7 @@
         vertEdgeScroll = false;
         twoFingerScroll = true;
       };
+
       displayManager.auto.enable = true;
       displayManager.auto.user = "hinton";
     };
