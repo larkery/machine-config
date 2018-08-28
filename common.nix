@@ -49,7 +49,7 @@
   };
 
   fonts.fonts = with pkgs;
-  [dejavu_fonts hack-font symbola font-awesome-ttf noto-fonts];
+  [dejavu_fonts iosevka hack-font symbola font-awesome-ttf noto-fonts];
   fonts.fontconfig.defaultFonts.monospace = ["Hack" "DejaVu Mono"];
   fonts.fontconfig.defaultFonts.sansSerif = ["DejaVu Sans"];
 
