@@ -12,13 +12,9 @@
       ./pulseaudio.nix
     ];
 
-
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
-#  boot.kernelPackages = pkgs.linuxPackages_latest; appears broken for wifi?
-
-  #programs.adb.enable = true;
 
   virtualisation.virtualbox.host.enable = true;
 
@@ -39,7 +35,6 @@
   networking.extraHosts = ''
   62.232.139.117 buzz.cse.org.uk buzz
   '';
-
 
   services.udev.extraRules = ''
     ACTION=="remove", GOTO="co2mini_end"
