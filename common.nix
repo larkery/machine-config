@@ -84,4 +84,22 @@
     };
   };
 
+  systemd.user.services.battery-alarm = {
+     enable = true;
+     wantedBy = ["default.target"];
+     path = [pkgs.systemd pkgs.libnotify];
+     script = ''
+     SCP=/sys/class/power_supply
+     [[ $(cat $SCP/AC/online) == 1 ]] && exit 0
+     CAP=$(cat $SCP/BAT0/capacity)
+     if [[ $CAP -lt 15 ]]; then
+        ~/bin/notify -u critical "Low battery: $CAP%"
+     elif [[ $CAP -lt 8 ]]; then
+        ~/bin/notify -u critical "Critical battery: $CAP%" "Hibernating..."
+        ${pkgs.systemd}/bin/systemctl hibernate
+     fi
+     '';
+     startAt = "*:0/10";
+  };
+
 }
