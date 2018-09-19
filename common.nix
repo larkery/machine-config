@@ -63,7 +63,8 @@
       enable = true;
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
-      windowManager.default = "xmonad";
+      windowManager.default = "i3";
+      
       desktopManager.default = "none";
 
       desktopManager.xterm.enable = true;
@@ -72,6 +73,21 @@
         enable = true;
         enableContribAndExtras = true;
       };
+
+      windowManager.i3.enable = true;
+      windowManager.i3.package = pkgs.lib.overrideDerivation pkgs.i3-gaps
+      (old : rec {
+          version = "4.15.0.1";
+          releaseDate = "2018-03-13";
+          src = pkgs.fetchurl {
+              url = "https://github.com/Airblader/i3/archive/${version}.tar.gz";
+              sha256 = "16s6bink8yj3zix4vww64b745d5drf2vqjg8vz3pwzrark09hfal";
+          };
+          postUnpack = ''
+              echo -n "${version} (${releaseDate})" > ./i3-${version}/I3_VERSION
+          '';
+      })
+      ;
 
       synaptics = {
         enable = true;
