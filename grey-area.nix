@@ -7,7 +7,6 @@
       ./common.nix
       ./trackpoint.nix
       ./autofs.nix
-      ./ppp.nix
       ./sysctls.nix
       ./syncthing.nix
       ./pulseaudio.nix
@@ -28,21 +27,6 @@
   networking.hostName = "grey-area";
   networking.wireless.enable = true;
   networking.firewall.enable = false;
-
-  services.ppp = {
-    enable = true;
-    config = {
-      cse = {
-        defaultroute = false;
-        host = "webmail.cse.org.uk";
-        username = "tomh";
-        usepeerdns = true;
-        refuse-eap = true;
-        mtu=800;
-        routes = [ "10.0.0.0/8" "172.16.10.2/24" ];
-      };
-    };
-  };
 
   services.printing.enable = true;
   services.printing.drivers = [ pkgs.gutenprint pkgs.samsung-unified-linux-driver_1_00_37 ];
