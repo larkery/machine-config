@@ -8,30 +8,6 @@
 
   time.timeZone = "Europe/London";
 
-  environment.systemPackages = with pkgs; [
-    zsh
-    hicolor_icon_theme
-    oxygen
-    numix-icon-theme
-  ];
-
-  security.wrappers.slock = {
-    source = "${pkgs.slock}/bin/slock";
-    owner = "root";
-    group = "wheel";
-  };
-
-  programs.zsh = {
-    enable = true;
-    shellInit = "";
-    shellAliases = {};
-    promptInit = "";
-    loginShellInit = "";
-    interactiveShellInit = "";
-    enableCompletion = false;
-  };
-
-  nixpkgs.config.allowUnfree = true;
 
   powerManagement.enable = true;
 
@@ -39,9 +15,6 @@
     MANPATH = [ "/man" "/share/man" ] ;
   };
 
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.defaultUserShell = "/var/run/current-system/sw/bin/zsh";
   users.extraUsers.hinton = {
     extraGroups = [ "wheel" "networkmanager" "input" "adbusers" ];
     isNormalUser = true;
@@ -52,7 +25,6 @@
   [dejavu_fonts inconsolata fira-mono hack-font symbola font-awesome-ttf noto-fonts];
   fonts.fontconfig.defaultFonts.monospace = ["Fira Mono" "DejaVu Mono"];
   fonts.fontconfig.defaultFonts.sansSerif = ["DejaVu Sans"];
-
 
   services = {
     acpid.enable = true;
@@ -75,19 +47,7 @@
       };
 
       windowManager.i3.enable = true;
-      windowManager.i3.package = pkgs.lib.overrideDerivation pkgs.i3-gaps
-      (old : rec {
-          version = "4.15.0.1";
-          releaseDate = "2018-03-13";
-          src = pkgs.fetchurl {
-              url = "https://github.com/Airblader/i3/archive/${version}.tar.gz";
-              sha256 = "16s6bink8yj3zix4vww64b745d5drf2vqjg8vz3pwzrark09hfal";
-          };
-          postUnpack = ''
-              echo -n "${version} (${releaseDate})" > ./i3-${version}/I3_VERSION
-          '';
-      })
-      ;
+      windowManager.i3.package = pkgs.i3-gaps;
 
       synaptics = {
         enable = true;
