@@ -4,7 +4,7 @@
 
   nixpkgs.overlays = [
   (self : super : {
-    emacs25 = super.emacs25.override {
+    emacs = super.emacs.override {
        withGTK2 = false;
        withGTK3 = false;
     };
@@ -29,7 +29,7 @@
     gtk-engine-murrine zuki-themes vanilla-dmz
     gnome2.gnome_icon_theme
     
-    emacs # emacs-pdf-tools
+    (emacsWithPackages (p : with p.melpaPackages; [pdf-tools]))
     graphviz aspell aspellDicts.en w3m
 
     notmuch isync msmtp
