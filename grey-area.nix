@@ -5,6 +5,8 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./common.nix
+      ./shell.nix
+      ./packages.nix
       ./trackpoint.nix
       ./autofs.nix
       ./sysctls.nix
@@ -15,6 +17,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
+  boot.plymouth.enable = true;
 
   services.logind.extraConfig = ''
     HandlePowerKey=hibernate

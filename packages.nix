@@ -24,12 +24,19 @@
   })
   ];
 
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages =
+  let
+    mkEmacs = (pkgs.emacsPackagesNgGen pkgs.emacs).emacsWithPackages;
+    myEmacs = mkEmacs
+      (e: [ e.pdf-tools pkgs.notmuch ] );
+  in
+  with pkgs; [
     hicolor_icon_theme oxygen numix-icon-theme
     gtk-engine-murrine zuki-themes vanilla-dmz
     gnome2.gnome_icon_theme
     
-    (emacsWithPackages (p : with p.melpaPackages; [pdf-tools]))
+    myEmacs
+    
     graphviz aspell aspellDicts.en w3m
 
     notmuch isync msmtp
@@ -49,7 +56,7 @@
 
     wpa_supplicant_gui
 
-    xclip xorg.xclock xdotool xorg.xkill xorg.xbacklight
+    xclip xorg.xclock xdotool xorg.xkill xorg.xbacklight xmacro xorg.xwininfo
 
     pinentry
     

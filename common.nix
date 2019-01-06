@@ -8,7 +8,6 @@
 
   time.timeZone = "Europe/London";
 
-
   powerManagement.enable = true;
 
   environment.profileRelativeEnvVars = {
@@ -16,14 +15,14 @@
   };
 
   users.extraUsers.hinton = {
-    extraGroups = [ "wheel" "networkmanager" "input" "adbusers" ];
+    extraGroups = [ "wheel" "networkmanager" "input" "adbusers" "vboxusers" ];
     isNormalUser = true;
     uid = 1000;
   };
 
   fonts.fonts = with pkgs;
   [dejavu_fonts inconsolata fira-mono hack-font symbola font-awesome-ttf noto-fonts];
-  fonts.fontconfig.defaultFonts.monospace = ["Fira Mono" "DejaVu Mono"];
+  fonts.fontconfig.defaultFonts.monospace = ["DejaVu Mono"];
   fonts.fontconfig.defaultFonts.sansSerif = ["DejaVu Sans"];
 
   services = {

@@ -4,7 +4,7 @@
   services.autofs = {
     enable = true;
     debug = false;
-    timeout = 300;
+    timeout = 60;
     autoMaster = let
       top = "/net file:${host}";
     # for some reason, as of recent builds, -DAUTOFS_HOST does not work.
