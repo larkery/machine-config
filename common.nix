@@ -34,17 +34,14 @@
       enable = true;
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
-      windowManager.default = "i3";
+
+      displayManager.auto.enable = true;
+      displayManager.auto.user = "hinton";
       
       desktopManager.default = "none";
-
       desktopManager.xterm.enable = true;
 
-      windowManager.xmonad = {
-        enable = true;
-        enableContribAndExtras = true;
-      };
-
+      windowManager.default = "i3";
       windowManager.i3.enable = true;
       windowManager.i3.package = pkgs.i3-gaps;
 
@@ -53,9 +50,6 @@
         vertEdgeScroll = false;
         twoFingerScroll = true;
       };
-
-      displayManager.auto.enable = true;
-      displayManager.auto.user = "hinton";
     };
   };
 
