@@ -56,7 +56,7 @@
 
     wpa_supplicant_gui
 
-    xclip xorg.xclock xdotool xorg.xkill xorg.xbacklight xmacro xorg.xwininfo
+    xclip xorg.xclock xdotool xorg.xkill xorg.xbacklight xautomation xorg.xwininfo
 
     pinentry
     
