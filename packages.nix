@@ -8,19 +8,12 @@
        withGTK2 = false;
        withGTK3 = false;
     };
-    
-    compton-custom = super.compton.overrideAttrs (_:
-    {
-      name = "compton-custom-hinton";
-      src =
-        super.fetchgit {
-        url = "https://github.com/larkery/compton.git";
-        rev = "3a28338cd8bd51188dbf000bfdf9404502a26ac8";
-        sha256 = "07lyw2df9cjcjmjjv1j70m1j4k8r9hbqivxb2vp4fl8zrxb2rq38";
-      };
-    }
-  );
-     pass = super.pass.override {gnupg = self.gnupg;};
+
+    dmenu = super.dmenu.overrideAttrs (a : {
+       patches = [./patches/dmenu-number-output.patch];
+    });
+
+    pass = super.pass.override {gnupg = self.gnupg;};
   })
   ];
 
@@ -64,7 +57,7 @@
     dunst
     pavucontrol
 
-    compton-custom
+    compton
     libnotify
 
     firefox chromium
