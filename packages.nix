@@ -24,6 +24,7 @@
       (e: [ e.pdf-tools pkgs.notmuch ] );
   in
   with pkgs; [
+    gnome3.defaultIconTheme
     hicolor_icon_theme oxygen numix-icon-theme
     gtk-engine-murrine zuki-themes vanilla-dmz
     gnome2.gnome_icon_theme
