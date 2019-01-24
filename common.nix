@@ -35,9 +35,12 @@
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
 
-      displayManager.auto.enable = true;
-      displayManager.auto.user = "hinton";
-      
+      displayManager.slim = {
+         enable = true;
+         autoLogin = true;
+         defaultUser = "hinton";
+      };
+
       desktopManager.default = "none";
       desktopManager.xterm.enable = true;
 

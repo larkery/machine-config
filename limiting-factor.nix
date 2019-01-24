@@ -16,7 +16,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
-  boot.plymouth.enable = true;
+  boot.blacklistedKernelModules = ["efi_pstore"];
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
@@ -34,8 +34,11 @@
 
   networking.hostName = "limiting-factor";
   networking.domain = "cse.org.uk";
-  networking.wireless.enable = true;
+  networking.search = ["cse.org.uk"];
+  #networking.wireless.enable = true;
   networking.firewall.enable = false;
+  networking.networkmanager.enable = true;
+
   networking.extraHosts = ''
   62.232.139.117 buzz.cse.org.uk buzz
   '';
