@@ -17,7 +17,9 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
-  boot.plymouth.enable = true;
+  boot.blacklistedKernelModules = ["efi_pstore"];
+
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   services.logind.extraConfig = ''
     HandlePowerKey=hibernate
@@ -28,7 +30,7 @@
   ];
 
   networking.hostName = "grey-area";
-  networking.wireless.enable = true;
+  networking.networkmanager.enable = true;
   networking.firewall.enable = false;
 
   services.printing.enable = true;
