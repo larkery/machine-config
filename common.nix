@@ -21,7 +21,9 @@
   };
 
   fonts.fonts = with pkgs;
-  [dejavu_fonts inconsolata fira-mono hack-font symbola font-awesome-ttf noto-fonts];
+  [dejavu_fonts inconsolata fira-mono hack-font symbola font-awesome-ttf noto-fonts
+   liberation_ttf font-droid roboto roboto-mono roboto-slab emacs-all-the-icons-fonts
+  ];
   fonts.fontconfig.defaultFonts.monospace = ["DejaVu Mono"];
   fonts.fontconfig.defaultFonts.sansSerif = ["DejaVu Sans"];
 

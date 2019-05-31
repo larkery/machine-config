@@ -1,5 +1,4 @@
 { config, pkgs, ... }:
-
 {
   imports =
     [ ./hardware-configuration.nix
@@ -29,7 +28,8 @@
   ];
 
   powerManagement.powerUpCommands = ''
-  ${pkgs.emacs}/bin/emacsclient -n -e '(progn (message "Cleanup connections") (tramp-cleanup-all-connections))' -s /tmp/emacs1000/server
+    export PATH="$PATH:${pkgs.emacs}/bin"
+    emacsclient -n -e '(tramp-cleanup-all-connections)' -s /tmp/emacs1000/server
   '';
 
   networking.hostName = "limiting-factor";

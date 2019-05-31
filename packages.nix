@@ -7,6 +7,7 @@
     emacs = super.emacs.override {
        withGTK2 = false;
        withGTK3 = false;
+       imagemagick = self.imagemagick;
     };
 
     dmenu = super.dmenu.overrideAttrs (a : {
@@ -14,9 +15,10 @@
     });
 
     pass = super.pass.override {gnupg = self.gnupg;};
+    srandrd = self.callPackage ./srandrd.nix {};
   })
   ];
-
+  
   environment.systemPackages =
   let
     mkEmacs = (pkgs.emacsPackagesNgGen pkgs.emacs).emacsWithPackages;
@@ -54,7 +56,7 @@
 
     pinentry
     
-    arandr autorandr
+    arandr autorandr srandrd
     dunst
     pavucontrol
 
