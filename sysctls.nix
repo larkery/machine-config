@@ -8,5 +8,8 @@
     "vm.overcommit_memory" = 2;
     "vm.overcommit_ratio" = 100;
     "vm.swappiness" = 80;
+    "net.ipv4.tcp_keepalive_time" = 120;
+    "net.ipv4.tcp_keepalive_intvl" = 10;
+    "net.ipv4.tcp_keepalive_probes" = 3;
   };
 }
