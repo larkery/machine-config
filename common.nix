@@ -15,7 +15,7 @@
   };
 
   users.extraUsers.hinton = {
-    extraGroups = [ "wheel" "networkmanager" "input" "adbusers" "vboxusers" ];
+    extraGroups = [ "wheel" "networkmanager" "input" "adbusers" "vboxusers" "video" ];
     isNormalUser = true;
     uid = 1000;
   };
@@ -76,4 +76,19 @@
      startAt = "*:0/10";
   };
 
+  programs.light.enable = true;
+
+  
+  networking.networkmanager = {
+    enable = true;
+    dhcp = "internal";
+  };
+
+  programs.firejail.enable = true;
+
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+  };
+  
 }

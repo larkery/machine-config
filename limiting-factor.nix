@@ -17,7 +17,15 @@
   boot.loader.timeout = 1;
   boot.blacklistedKernelModules = ["efi_pstore"];
 
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.package = pkgs.bluezFull;
+    
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.cleanTmpDir = true;
+
+  systemd.tmpfiles.rules = [
+    "d /tmp 1777 root root 10d"
+  ];
 
   virtualisation.virtualbox.host.enable = true;
 
@@ -36,10 +44,7 @@
   networking.domain = "cse.org.uk";
   networking.search = ["cse.org.uk"];
   networking.firewall.enable = false;
-  networking.networkmanager.enable = true;
-  networking.networkmanager.dhcp = "internal";
-  programs.firejail.enable = true;
-
+  
   networking.extraHosts = ''
   62.232.139.117 buzz.cse.org.uk buzz
   '';

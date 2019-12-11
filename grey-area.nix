@@ -30,7 +30,6 @@
   ];
 
   networking.hostName = "grey-area";
-  networking.networkmanager.enable = true;
   networking.firewall.enable = false;
 
   services.printing.enable = true;
