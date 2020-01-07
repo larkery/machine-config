@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports =
@@ -12,14 +12,13 @@
       ./sysctls.nix
       ./syncthing.nix
       ./pulseaudio.nix
+      ./kernel-ck.nix
     ];
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.timeout = 1;
   boot.blacklistedKernelModules = ["efi_pstore"];
-
-  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   services.logind.extraConfig = ''
     HandlePowerKey=hibernate
