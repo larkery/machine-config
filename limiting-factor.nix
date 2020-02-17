@@ -21,6 +21,7 @@
   hardware.bluetooth.enable = true;
   hardware.bluetooth.package = pkgs.bluezFull;
 
+  services.printing.enable = true;
   boot.cleanTmpDir = true;
 
   systemd.tmpfiles.rules = [
