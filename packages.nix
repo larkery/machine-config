@@ -30,7 +30,7 @@
   let
     mkEmacs = (pkgs.emacsPackagesNgGen pkgs.emacs).emacsWithPackages;
     myEmacs = mkEmacs
-      (e: [ e.pdf-tools pkgs.notmuch ] );
+    (e: [ e.pdf-tools pkgs.notmuch e.org ] );
   in
   with pkgs; [
     gnome3.defaultIconTheme
