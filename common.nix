@@ -10,6 +10,10 @@
 
   powerManagement.enable = true;
 
+  services.logind.extraConfig = ''
+    HandlePowerKey=ignore
+  '';
+
   environment.profileRelativeEnvVars = {
     MANPATH = [ "/man" "/share/man" ] ;
   };
