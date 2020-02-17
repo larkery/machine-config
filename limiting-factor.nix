@@ -10,6 +10,7 @@
       ./sysctls.nix
       ./syncthing.nix
       ./pulseaudio.nix
+      ./kernel-ck.nix
     ];
 
   boot.loader.systemd-boot.enable = true;
@@ -19,8 +20,7 @@
 
   hardware.bluetooth.enable = true;
   hardware.bluetooth.package = pkgs.bluezFull;
-    
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+
   boot.cleanTmpDir = true;
 
   systemd.tmpfiles.rules = [
