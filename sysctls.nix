@@ -11,5 +11,7 @@
     "net.ipv4.tcp_keepalive_time" = 120;
     "net.ipv4.tcp_keepalive_intvl" = 10;
     "net.ipv4.tcp_keepalive_probes" = 3;
+    "net.ipv4.tcp_syn_retries" = 4;
+    "net.ipv4.tcp_retries2" = 6;
   };
 }
