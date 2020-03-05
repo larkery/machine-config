@@ -16,13 +16,6 @@
 
     pass = super.pass.override {gnupg = self.gnupg;};
     srandrd = self.callPackage ./srandrd.nix {};
-
-  #   gnupg = super.gnupg.overrideAttrs
-  #   (o : {
-  #     patches = o.patches ++ [
-  #       ./patches/gpg-notify.patch
-  #     ];
-  #   });
   })
   ];
   
