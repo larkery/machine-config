@@ -37,8 +37,15 @@
       fi
       IPADDR=$(${pkgs.fping}/bin/fping -m "$MOUNT_HOST" -A -a | head -n 1)
       UNC="://''${IPADDR:-$MOUNT_HOST}/$MOUNT_SHARE"
-      echo '-fstype=cifs,echo_interval=20,vers=2.1,uid=$UID'"$CREDS"' '"$UNC"
+      echo '-fstype=cifs,echo_interval=15,vers=2.1,uid=$UID'"$CREDS"' '"$UNC"
     '';
   in top;
   };
+
+  systemd.services.autofs.serviceConfig.ExecStart =
+    with pkgs.lib;
+    let
+      cfg = config.services.autofs;
+      autoMaster = pkgs.writeText "auto.master" cfg.autoMaster; # yuck
+    in mkForce "${pkgs.autofs5}/bin/automount ${optionalString cfg.debug "-d"} -p /run/autofs.pid -t ${builtins.toString cfg.timeout} -n 5 ${autoMaster}";
 }
