@@ -22,6 +22,8 @@
   hardware.bluetooth.enable = true;
   hardware.bluetooth.package = pkgs.bluezFull;
 
+  hardware.opengl.driSupport32Bit = true;
+  
   services.printing.enable = true;
   boot.cleanTmpDir = true;
 
@@ -41,7 +43,7 @@
     export PATH="$PATH:${pkgs.emacs}/bin"
     emacsclient -n -e '(tramp-cleanup-all-connections)' -s /tmp/emacs1000/server
   '';
-
+  
   networking.hostName = "limiting-factor";
   networking.domain = "cse.org.uk";
   networking.search = ["cse.org.uk"];
