@@ -5,6 +5,7 @@
     in {
       enable = true;
       wantedBy = targets;
+      path = with pkgs; [xorg.xsetroot feh];
       script = ''
         export DISPLAY=:0
         ${pkgs.autorandr}/bin/autorandr -c

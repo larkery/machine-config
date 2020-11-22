@@ -8,5 +8,8 @@
     enable = true;
     support32Bit = true;
     package = pkgs.pulseaudioFull;
+    daemon.config = {
+      "avoid-resampling" = "yes";
+    };
   };
 }

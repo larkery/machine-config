@@ -1,10 +1,11 @@
 {config, pkgs, ...}:
 {
-  i18n = {
-    consoleFont = "Lat2-Terminus16";
-    consoleUseXkbConfig = true;
-    defaultLocale = "en_GB.UTF-8";
+  console = {
+    font = "Lat2-Terminus16";
+    useXkbConfig = true;
   };
+
+  i18n.defaultLocale = "en_GB.UTF-8";
 
   time.timeZone = "Europe/London";
 
@@ -25,8 +26,8 @@
   };
 
   fonts.fonts = with pkgs;
-  [dejavu_fonts inconsolata fira-mono hack-font symbola font-awesome-ttf noto-fonts
-   liberation_ttf noto-fonts roboto roboto-mono roboto-slab emacs-all-the-icons-fonts
+  [dejavu_fonts symbola font-awesome-ttf noto-fonts
+  liberation_ttf noto-fonts roboto roboto-mono roboto-slab emacs-all-the-icons-fonts
   ];
   fonts.fontconfig.defaultFonts.monospace = ["DejaVu Mono"];
   fonts.fontconfig.defaultFonts.sansSerif = ["DejaVu Sans"];
@@ -40,24 +41,18 @@
       enable = true;
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
+      
+      displayManager.sddm.enable = true;
+      displayManager.autoLogin = {enable = true; user = "hinton";};
+      displayManager.defaultSession = "none+i3";
 
-      displayManager.slim = {
-         enable = true;
-         autoLogin = true;
-         defaultUser = "hinton";
-      };
-
-      desktopManager.default = "none";
-      desktopManager.xterm.enable = true;
-
-      windowManager.default = "i3";
       windowManager.i3.enable = true;
       windowManager.i3.package = pkgs.i3-gaps;
+      windowManager.icewm.enable = true;
 
-      synaptics = {
+      libinput = {
         enable = true;
-        vertEdgeScroll = false;
-        twoFingerScroll = true;
+        disableWhileTyping = true;
       };
     };
   };
@@ -81,14 +76,12 @@
   };
 
   programs.light.enable = true;
-
+  programs.firejail.enable = true;
   
   networking.networkmanager = {
     enable = true;
     dhcp = "internal";
   };
-
-  programs.firejail.enable = true;
 
   zramSwap = {
     enable = true;

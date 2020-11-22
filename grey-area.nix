@@ -31,9 +31,6 @@
   networking.hostName = "grey-area";
   networking.firewall.enable = false;
 
-  services.printing.enable = true;
-  services.printing.drivers = [ pkgs.gutenprint pkgs.samsung-unified-linux-driver_1_00_37 ];
-
   programs.adb.enable = true;
 
   virtualisation.virtualbox.host.enable = true;
