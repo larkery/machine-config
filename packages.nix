@@ -11,7 +11,7 @@
       emacs =  super.emacs.override {
         withGTK2 = false;
         withGTK3 = false;
-        imagemagick = self.imagemagick;
+#        imagemagick = self.imagemagick;
       };
       
       dmenu = super.dmenu.overrideAttrs (a : {
@@ -20,6 +20,15 @@
 
       pass = super.pass.override {gnupg = self.gnupg;};
       srandrd = self.callPackage ./srandrd.nix {};
+
+      i3-gaps = super.i3-gaps.overrideAttrs (o : rec {
+        version = "4.19";
+        src = self.fetchurl {
+          url = "https://github.com/Airblader/i3/releases/download/${version}/i3-${version}.tar.xz";
+          sha256 = "0j19kj05fpjfnj50vyykk6jsr07hq9l26y8na55bb7yfrra8yp4h";
+        };
+        nativeBuildInputs = (builtins.filter (x : x != self.autoreconfHook) o.nativeBuildInputs) ++ [ self.meson self.ninja ];
+      });
     })
   ];
   
@@ -111,13 +120,10 @@
       rxvt_unicode-with-plugins
       xclip xorg.xclock xdotool xorg.xkill xorg.xbacklight xautomation xorg.xwininfo
       wmctrl
-      pinentry pinentry_qt
-
       pamixer
       xss-lock
       dunst libnotify
       arandr autorandr
-      picom
       rofi
       pavucontrol
       xorg.transset

@@ -42,13 +42,17 @@
       layout = "gb";
       xkbOptions = "ctrl:nocaps";
       
-      displayManager.sddm.enable = true;
       displayManager.autoLogin = {enable = true; user = "hinton";};
-      displayManager.defaultSession = "none+i3";
+      displayManager.defaultSession = "xfce+i3";
 
+      desktopManager.xfce = {
+        enable = true;
+        enableXfwm = false;
+        noDesktop = true;
+      };
+      
       windowManager.i3.enable = true;
       windowManager.i3.package = pkgs.i3-gaps;
-      windowManager.icewm.enable = true;
 
       libinput = {
         enable = true;
@@ -77,7 +81,13 @@
 
   programs.light.enable = true;
   programs.firejail.enable = true;
-  
+  programs.bandwhich.enable = true;
+  programs.gnupg = {
+    agent.enable = true;
+    agent.enableSSHSupport = true;
+    agent.pinentryFlavor = "gtk2";
+  };
+
   networking.networkmanager = {
     enable = true;
     dhcp = "internal";

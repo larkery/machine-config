@@ -1,0 +1,12 @@
+#!/bin/sh
+# email tidying up process for render in emacs.
+# continuing the endless struggle against outlook, the worst email program
+iconv -f "$1" -t "UTF-8" |
+    tidy -q -config ~/.config/html-tidy/tidy.conf --input-encoding utf8 |
+    ## the below doesn't quite work
+#    perl -pe 'while (<>) {print "&gt; " if /<blockquote.*>/../<\/blockquote>/; print $_;}' |
+    w3m -cols "$2" -o display_charset=UTF-8 \
+        -o ext_halfdump=1 -o pre_conv=1 -halfdump -T text/html |
+    perl -pe '$/=""; s/\n+/\n/;'
+
+## TODO : delete the total control garbage?

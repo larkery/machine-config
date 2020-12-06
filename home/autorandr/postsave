@@ -1,0 +1,8 @@
+#!/bin/sh
+LID_FILE=/proc/acpi/button/lid/LID/state
+LID_STATE=$(cat "$LID_FILE")
+cat > "$AUTORANDR_PROFILE_FOLDER/block" <<EOF
+#!/bin/sh
+grep -q -v "$LID_STATE" "$LID_FILE"
+EOF
+chmod +x -- "$AUTORANDR_PROFILE_FOLDER/block"

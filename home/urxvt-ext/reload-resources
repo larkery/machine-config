@@ -1,0 +1,48 @@
+#! perl
+
+use strict;
+use Data::Dumper;
+use v5.20;
+no warnings;
+use warnings qw(FATAL closed threads internal debugging pack
+                portable prototype inplace io pipe unpack malloc
+                glob digit printf layer reserved taint closure
+                semicolon);
+no warnings qw(exec newline unopened);
+sub on_root_event {
+    my $term = shift;
+    my $event = shift;
+
+    if ($event->{'type'} == 28) {
+        my $atom_name =
+            $term->XGetAtomName($event->{'atom'});
+        if ($atom_name eq "RESOURCE_MANAGER") {
+            my $state = $event->{'state'};
+            my $lines = $term->XGetWindowProperty($term->DefaultRootWindow, $event->{'atom'});
+            my @lines = split "\n", $lines;
+            my $cmd = "";
+          RESOURCE:
+            for (@lines) {
+                if (/URxvt.(.*?):\s*(.*)/) {
+                    my $val = $2;
+                    my $escape = "";
+                    given ($1) {
+                        $escape = "4;$1" when (/color(\d+)/);
+                        $escape = 10 when "foreground";
+                        $escape = 11 when "background";
+                        $escape = 12 when "cursor";
+                        $escape = 13 when "mouse_foreground";
+                        $escape = 14 when "mouse_background";
+                        $escape = 17 when "highlight";
+                        $escape = 708 when "borderColor";
+                        $escape = 710 when "font";
+                        default { next RESOURCE }
+                    }
+                    $cmd .= "\e]$escape;$val\a";
+                }
+            }
+
+            $term->cmd_parse($cmd);
+        }
+    }
+}

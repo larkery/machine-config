@@ -30,7 +30,7 @@
             chown -R $AUTOFS_USER $CREDS_FIFO
             chmod -R 700 $CREDS_FIFO
 
-            (/run/wrappers/bin/su $AUTOFS_USER -c "/home/hinton/bin/passm --credentials '$CREDS_FIFO' $ENTRY" &)
+            (/run/wrappers/bin/su $AUTOFS_USER -c "DISPLAY=:0 /home/hinton/bin/passm --credentials '$CREDS_FIFO' $ENTRY" &)
 
             CREDS=",credentials=$CREDS_FIFO"
          fi

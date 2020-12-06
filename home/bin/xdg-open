@@ -1,0 +1,94 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use File::Basename;
+use v5.28.1;
+
+sub handle;
+
+sub urldecode {
+    my ($rv) = @_;
+    $rv =~ s/\+/ /g;
+    $rv =~ s/%(..)/pack("c",hex($1))/ge;
+    return $rv;
+}
+
+sub name { my $x = shift(@_); sub { $_[0] =~ $x; }; }
+sub mime { my $x = shift(@_); sub { $_[1] =~ $x; }; }
+sub run  { my $x = shift(@_); sub { exec $x, $_[0]; }; }
+
+sub ask {
+    my $nam = basename($_[0]);
+    my $result = qx/dmenu_path | dmenu -l 10 -p "open $nam: "/;
+    chomp($result);
+    if ($result) {
+        exec $result, $_[0];
+    }
+}
+
+sub browse_file {
+    my $arg = $_[0]; my $fp = qx/readlink -f $arg/;
+    exec "browser", "file:///$fp";
+}
+
+sub browse_url { exec "browser", $_[0]; }
+sub emacs { exec "emacsclient", "-c", "-n", $_[0]; }
+sub zoom {
+    my $url = $_[0];
+    $url =~ m/\/j(oin)?\/([^?]+)/;
+    my $confno = $2;
+    my $pwd = "";
+    if ($url =~ m/pwd=([^&].+)/g) {
+        $pwd = "&pwd=$1";
+    }
+
+    exec "zoom-us", "zoommtg://zoom.us/join?confno=$confno$pwd";
+}
+
+sub handle_file {
+    my $u = urldecode $_[0];
+    $u =~ s/^file://g;
+    $u =~ s/[\/\\]+/\//g;
+    $u =~ s/(^\/((?i)cse-bs3-(data|file)\/[^\/]+))(.*)$/\/net\/\L$2\E$4/g;
+    handle $u;
+}
+
+my @rules = (
+    [[name("^https?://(.+\\.)?whereby.com")],   run "chromium"],
+    [[name("^https://(.+\\.)?zoom.us/j/")],             \&zoom],
+    [[name("^zoommtg:")],                        run "zoom-us"],
+    [[name("^https://teams.microsoft.com")],       run "teams"],
+    [[name("^https?:")],                          \&browse_url],
+    [[name("\\.html\$"), mime("^text/html\$")],  \&browse_file],
+    [[name("^file://")],                         \&handle_file],
+    [[mime("application/msword"),
+      mime("application/vnd.oasis.opendocument.text"),
+      name("\\.(docx?|xlsx?|tab|csv)\$")],       run "soffice"],
+    [[mime("^image/")],                             run "sxiv"],
+    [[mime("^text/"), mime("inode/directory"),
+      name("^emacsclient:")],                          \&emacs],
+    [[mime("^application/pdf\$"), name("\\.pdf\$")],
+                                               run "mupdf-x11"],
+    [[sub {1;}],                                         \&ask]
+    );
+
+
+sub handle {
+    my $arg = shift(@_);
+    
+    my $mime = qx/file --mime-type --brief -- "$arg"/ if -e $arg;
+    
+    $mime = $mime || 0;
+    foreach my $rule (@rules) {
+        my $tests = $rule->[0];
+        my $action = $rule->[1];
+        foreach my $test (@$tests) {
+            $action->($arg) if ($test->($arg, $mime));
+        }
+    }
+}
+
+foreach my $arg (@ARGV) {
+    handle $arg;
+}
+

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+case $1 in file:*)
+        exec firefox -p local "$@"
+esac
+
+id=$(xdotool search --onlyvisible --classname Navigator|tail -n 1)
+if [[ -z $id ]]; then
+    exec firefox --new-window "$@" #bwrap --dev-bind / /  why was this in here?
+else
+    xdotool windowactivate $id
+    exec firefox --new-tab "$@"
+fi
