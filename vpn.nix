@@ -1,29 +1,27 @@
 {config, pkgs, ...}:
-{
-  environment.systemPackages = [
-    (pkgs.buildEnv {
-      ignoreCollisions = true;
-      name = "ppp";
-      paths = [
-        
-        (pkgs.stdenv.mkDerivation {
-          name = "patched-poff";
-          unpackPhase = ''
-            echo hi
-          '';
-          installPhase = ''
-            mkdir -p $out/bin
-            cp ${pkgs.ppp}/bin/poff $out/bin/poff
-            sed -ie 's!KILL="/bin/kill"!KILL="${pkgs.coreutils}/bin/kill"!g' $out/bin/poff
-          '';
-        })
+let ppp = pkgs.buildEnv {
+  ignoreCollisions = true;
+  name = "ppp";
+  paths = [
+    
+    (pkgs.stdenv.mkDerivation {
+      name = "patched-poff";
+      unpackPhase = ''
+        echo hi
+      '';
+      installPhase = ''
+        mkdir -p $out/bin
+        cp ${pkgs.ppp}/bin/poff $out/bin/poff
+        sed -ie 's!KILL="/bin/kill"!KILL="${pkgs.coreutils}/bin/kill"!g' $out/bin/poff
+      '';
+    })
 
-        pkgs.ppp
-      ];
-    }
-
-    )
+    pkgs.ppp
   ];
+};
+in
+{
+  environment.systemPackages = [ ppp ];
   services.pppd = {
     enable = true;
     peers.cse.enable = true;
