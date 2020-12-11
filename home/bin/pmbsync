@@ -28,7 +28,9 @@ if [[ "$#" = 0 ]]; then
     done < "$CACHE"
 else
     while read box; do
-        go "$box" &
+        if [[ -n $box ]]; then
+            go "$box" &
+        fi
     done < <(printf "%s\n" "$@" | sort -u)
 fi
 
