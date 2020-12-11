@@ -2,55 +2,13 @@
   imports = [
     <home-manager/nixos>
     
-    ./office-mail.nix
-    ./fastmail.nix
+    ./displays.nix
+    ./email.nix
   ];
 
   home-manager.useGlobalPkgs = true;
-  home-manager.users.hinton = {pkgs, ...} :
-  let
-    refile = pkgs.callPackage ./refile.nix {};
-  in
+  home-manager.users.hinton = {config, pkgs, lib, ...} :
   {
-    programs.msmtp.enable = true;
-    programs.mbsync.enable = true;
-    programs.notmuch.enable = true;
-
-    programs.notmuch.new.tags = ["inbox" "new"];
-    programs.notmuch.hooks.preNew = ''
-      readarray CHANGED < <(${refile}/bin/refile)
-      if [[ -z $NO_SYNC ]] ; then
-         CHANGED+=("cse:Inbox")
-         CHANGED+=("fm:Inbox")
-         pushd $MAIL_DIR >/dev/null
-         RECENT=$(date +%s --date="3 hours ago")
-         for md in *; do
-           pushd "$md" >/dev/null
-           for f in *; do
-             if [[ $(date +%s -r "$f") -lt $RECENT ]]; then
-               CHANGED+=("$md:$f")
-             fi
-           done
-           popd >/dev/null
-         done
-         popd >/dev/null
-         pmbsync "''${CHANGED[@]}"
-      fi
-    '';
-
-    programs.notmuch.hooks.postNew = ''
-      NEW=$(notmuch count -- is:new -is:sent)
-      if [[ $NEW -gt 0 ]]; then
-         notify-send -i mail-read "$NEW new messages"
-      fi
-      readarray CHANGED < <(${refile}/bin/refile)
-      notmuch tag -new -- tag:new
-      if [[ -z $NO_SYNC ]] && [[ ''${#CHANGED[@]} -gt 1 ]]; then
-         pmbsync "''${CHANGED[@]}"
-         notmuch new
-      fi
-    '';
-
     services.picom.enable = true;
     services.picom.experimentalBackends = true;
     services.picom.vSync = true;
@@ -70,32 +28,42 @@
     services.redshift.longitude = "-2.5879";
 
     services.dunst.enable = true;
+    services.dunst.iconTheme = {
+      name = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
+    };
+    services.dunst.settings = {
+      global = {
+        follow = "mouse";
+        geometry = "0x0-0+0";
+        icon_position = "left";
+        vertical_alignment = "top";
+        transparency = 10;
+        horizontal_padding = 20;
+        max_icon_size=24;
+        min_icon_size=24;
+        padding = 6;
+        format = ''
+          %s %p %I 
+          %b'';
+        markup = "full";
+      };
+    };
 
     home.sessionVariables = {
       BROWSER = "xdg-open";
-      MAIL_DIR = "$HOME/Maildir";
+
       ALTERNATE_EDITOR = "";
       EDITOR = "emacsclient";
       QUOTING_STYLE="literal";
       LESS = "-R -W";
 
-      MSMTP_QUEUE = "~/.cache/msmtp/queue";
-      MSMTP_LOG = "~/.cache/msmtp/log";
+      # home.sessionPath appends rather than prepends.
       
-      EMAIL_QUEUE_QUIET = "t";
-
-      XDG_DOWNLOAD_DIR = "$HOME/dl";
-      XDG_DESKTOP_DIR = "$HOME";
-      XDG_DOCUMENTS_DIR = "$HOME";
-      XDG_MUSIC_DIR = "$HOME/music";
-      XDG_PICTURES_DIR = "$HOME/photos";
-      XDG_VIDEOS_DIR="$HOME/";
-      XDG_TEMPLATES_DIR="$HOME/.templates";
-      XDG_PUBLICSHARE_DIR="$HOME/public";
+      PATH=''$HOME/bin''${PATH:+:}$PATH'';
+      LD_LIBRARY_PATH=''$LD_LIBRARY_PATH''${LD_LIBRARY_PATH:+:}${pkgs.xorg.libXcursor}/lib'';
     };
 
-    home.sessionPath = [ "$HOME/bin" ];
-    
     home.file = {
       ".profile".text = ''
         . "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
@@ -106,6 +74,10 @@
       ".xprofile".text = ''
         source ~/.profile
         echo $DBUS_SESSION_BUS_ADDRESS > .dbus_session_bus_address
+        setxkbmap
+
+        xfconf-query --channel xsettings --property /Gtk/CursorThemeName ${config.xsession.pointerCursor.name}
+        xfconf-query --channel xsettings --property /Gtk/CursorThemeSize ${toString config.xsession.pointerCursor.size}
       '';
 
       "bin" = {
@@ -147,11 +119,6 @@
         new-blocklevel-tags: cfoutput, cfquery
         new-empty-tags: cfelse
       '';
-
-      ".config/autorandr" = {
-        recursive = true;
-        source = ./autorandr;
-      };
     };
 
     xresources.properties = {
@@ -189,5 +156,24 @@
       #include "/home/hinton/.Xresources_emacs"
       
     '';
+
+    xdg.userDirs.enable = true;
+    xdg.userDirs = {
+      desktop = "$HOME";
+      documents = "$HOME/misc";
+      download = "$HOME/dl";
+      music = "$HOME/music";
+      templates = "$HOME/.config/templates";
+      videos = "$HOME";
+      publicShare = "$HOME/.share/public";
+      pictures = "$HOME";
+    };
+
+    
+    xsession.pointerCursor = {
+      package = pkgs.gnome3.adwaita-icon-theme;
+      name = "Adwaita";
+      size = 32;
+    };
   };
 }
