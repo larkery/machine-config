@@ -12,7 +12,6 @@
       ./sysctls.nix
       ./syncthing.nix
       ./pulseaudio.nix
-      ./arandr.nix
       ./vpn.nix
       ./printing.nix
     ];
@@ -61,7 +60,9 @@
       62.232.139.117 buzz.cse.org.uk buzz
     '';
 
-    services.dbus.packages = [pkgs.gcr];
+    documentation.man.generateCaches = true;
+    
+    #services.dbus.packages = [pkgs.gcr];
 
     services.udev.extraRules =
       let 
