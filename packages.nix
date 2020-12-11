@@ -2,6 +2,8 @@
 {
   nixpkgs.config.allowUnfree = true;
 
+  imports = [ ./hack-xdg-open.nix ];
+  
   nixpkgs.overlays = [
     (self : super : {
       notmuch = super.notmuch.override {
@@ -32,52 +34,7 @@
     })
   ];
   
-  environment.systemPackages =
-    let
-    fixed-xdg-utils = derivation {
-      name = pkgs.xdg_utils.name;
-      version = pkgs.xdg_utils.version;
-      system = builtins.currentSystem;
-      builder = let xo2 = pkgs.writeScript "xdg-open" ''
-        #! ${pkgs.bash}/bin/bash
-        exec ''${HOME}/bin/xdg-open "$@"
-      '';
-      in
-      pkgs.writeScript "build" ''
-        #! ${pkgs.bash}/bin/bash
-        ${pkgs.coreutils}/bin/mkdir $out
-        ${pkgs.coreutils}/bin/ln -s ${pkgs.xdg_utils}/* $out
-        ${pkgs.coreutils}/bin/rm -rf $out/bin
-        ${pkgs.coreutils}/bin/mkdir -p $out/bin
-        ${pkgs.coreutils}/bin/ln -s ${pkgs.xdg_utils}/bin/* $out/bin
-        ${pkgs.coreutils}/bin/ln -sf ${xo2} $out/bin/xdg-open
-      '';
-    };
-
-    fix-xdg = ''${pkgs.bubblewrap}/bin/bwrap --dev-bind / / --bind ${fixed-xdg-utils} ${pkgs.xdg_utils}'';
-    
-    replace-xdg = pkgs.writeScriptBin "replace-xdg" ''
-      #! ${pkgs.bash}/bin/bash
-      
-      exec ${fix-xdg} "$@"
-    '';
-
-    telegram-desktop = pkgs.writeScriptBin "telegram-desktop" ''
-      #! ${pkgs.bash}/bin/bash
-      exec ${fix-xdg} ${pkgs.tdesktop}/bin/telegram-desktop "$@"
-    '';
-
-    chromium = pkgs.writeScriptBin "chromium" ''
-      #! ${pkgs.bash}/bin/bash
-      exec ${fix-xdg} ${pkgs.chromium}/bin/chromium "$@"
-    '';
-
-    teams = pkgs.writeScriptBin "teams" ''
-      #! ${pkgs.bash}/bin/bash
-      exec ${fix-xdg} ${pkgs.teams}/bin/teams "$@"
-    '';
-  in
-  with pkgs;
+  environment.systemPackages = with pkgs;
   let
     theme-junk = [
       gnome3.defaultIconTheme
@@ -101,7 +58,6 @@
       ag most htop
       sqlite
       jq
-      replace-xdg
       sstp
       pv
       ripgrep
@@ -130,7 +86,7 @@
       maim
     ];
     apps = [
-      firefox chromium telegram-desktop teams inkscape gimp libreoffice
+      firefox chromium tdesktop teams inkscape gimp libreoffice
       mupdf
       spotify
       zoom-us
