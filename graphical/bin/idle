@@ -1,0 +1,175 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use Mail::IMAPClient;
+use IO::Socket::SSL;
+use Socket;
+use Linux::Inotify2;
+use threads;
+use threads::shared;
+
+use POSIX qw(setsid);
+setsid;
+
+$ENV{"QUIET"} = "1";
+
+my $delay_time = int($ENV{"DELAY"} or 10);
+
+unless (-t STDIN) {
+    exec "urxvt", "-font", "xft:Monospace-10", "-e", $0;
+}
+
+open my $mbsync, $ENV{"HOME"} . "/.mbsyncrc" or die $!;
+
+my $acct;
+my %accts;
+my @maildirs;
+
+while (my $line = <$mbsync>) {
+    next if $line =~ /^\s*#/;
+    if ($line =~ /IMAPAccount (.+)/) {
+        $acct = $1;
+    } elsif ($line =~ /(Path|Inbox) (.+)/) {
+        foreach my $d (glob("$2/*/cur")) {
+            push @maildirs, $d;
+        }
+    } else {
+        if ($line =~ /\s*([^\s]+)\s+?(.+)/) {
+            $accts{$acct}{$1} = $2;
+        }
+    }
+}
+
+system "notmuch new";
+system "stty -tostop";
+
+my %pending : shared = ();
+
+sub trigger_sync {
+    my $cause = shift;
+    lock(%pending);
+    foreach my $box (@_) {
+        $pending{"$box"} = 1;
+#        print("($cause) will sync $box\n");
+    }
+    cond_signal(%pending);
+}
+
+sub read_server {
+    my $server = shift;
+
+  reconnect:
+    until (0) {
+        my $host = $accts{$server}{Host};
+        my $user = $accts{$server}{User};
+        my $pass = $accts{$server}{PassCmd};
+        my $ssltype = $accts{$server}{SSLType};
+
+        my $mailbox = 'INBOX';
+
+        $pass =~ s/^"//;
+        $pass =~ s/"$//;
+        $pass =`$pass`;
+        chomp $pass;
+
+#        print "connecting to $host:$ssltype...\n";
+        my $client;
+        if ($ssltype eq 'IMAPS') {
+            my $socket = IO::Socket::SSL->new ( PeerAddr => $host, PeerPort => 993)
+                or next reconnect;
+            $client = Mail::IMAPClient->new(
+                Socket => $socket,
+                KeepAlive => 'true',
+                User => $user,
+                Password => $pass);
+        } else {
+            $client = Mail::IMAPClient->new(
+                Server => $host,
+                Port => 143,
+                KeepAlive => 'true',
+                Starttls => 'true',
+                User => $user,
+                Password => $pass
+                );
+        }
+        next reconnect unless $client;
+        setsockopt($client->Socket(), SOL_SOCKET, SO_KEEPALIVE, pack("l", 1));
+        $client->select($mailbox) or next reconnect;
+        
+        until (0) {
+            ## die "$host disconnected\n"
+            
+            next reconnect unless $client->IsConnected;
+            my $unseen = 0 + $client->unseen_count;
+            my $lunseen = 0 + `notmuch count 'tag:unread and tag:inbox and path:$server/**'`;
+            if ($lunseen != $unseen) {
+                trigger_sync "delta", "$server:INBOX";
+            }
+
+            my $tag = $client->idle() or next reconnect;
+            my $msgs = $client->idle_data(300);
+            next reconnect unless defined $msgs;
+            if (scalar(@$msgs)) {
+                trigger_sync "imap", "$server:INBOX";
+            }
+            $client->done($tag);
+        }
+  }
+}
+
+for my $server ( keys %accts ) {
+    my $thread = threads->create(\&read_server, ($server));
+    $thread->detach()
+}
+
+sub do_inotify {
+    my $inotify = new Linux::Inotify2 or die "no inotify $!";
+
+    for my $d (@maildirs) {
+        $inotify->watch($d, IN_MOVED_FROM | IN_MOVED_TO | IN_CREATE | IN_DELETE)
+    }
+
+    while () {
+        my @events = $inotify->read;
+        my @boxes = ();
+        foreach my $e (@events) {
+            my $name = $e->{w}->{name};
+            my $fullname = $e->fullname;
+#            print("change to $fullname\n");
+            # so $name is the maildir that has changed it would be worth
+            # syncing it, but we might already be doing that.
+            $name =~ /\/([^\/]+)\/+([^\/]+)\/+cur$/;
+            my $channel = $1;
+            my $maildir = $2;
+            if ($maildir =~ /(?i)^inbox$/) {
+                $maildir = "INBOX";
+            }
+            push @boxes, "$channel:$maildir";
+        }
+        trigger_sync "inotify", @boxes;
+    }
+}
+
+my $inotify_thread = threads->create(\&do_inotify);
+$inotify_thread->detach();
+
+while () {
+    lock(%pending);
+    cond_wait(%pending);
+    my $timed_out = 0;
+    until ($timed_out) {
+        lock(%pending);
+        $timed_out = !cond_timedwait(%pending, time() + $delay_time);
+    }
+    {
+        lock(%pending);
+        my @boxes = keys %pending;
+        if (@boxes) {
+#            print "syncing @boxes\n";
+            system "mbsync", @boxes;
+            system("NO_SYNC=1 notmuch new");
+            %pending = ();
+        }
+    }
+}

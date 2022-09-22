@@ -1,0 +1,270 @@
+#!/usr/bin/env python3
+
+from   __future__ import print_function
+import notmuch, os, shutil, sys
+import uuid
+import re
+from   email.parser import Parser
+from   email.utils import parsedate
+import time
+import datetime as dt
+
+base_maildir = os.environ['MAIL_DIR']
+db = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
+today = dt.datetime.today()
+
+def md(p):
+    return os.path.relpath(os.path.dirname(os.path.dirname(p)), base_maildir)
+
+def mbsync_uid(fn):
+    fn = os.path.basename(fn)
+    [nam, flags] = fn.split(':')
+    return int((nam.split(',')[1])[2:])
+
+def generate_name(fn):
+    fn = os.path.basename(fn)
+    flags = fn.split(':')[-1]
+    return 'refile-' + str(uuid.uuid1()) + ':' + flags
+
+def refile(mail, dest):
+    dest = os.path.join(os.path.join(base_maildir, dest), 'cur')
+    mailname = os.path.basename(dest)
+    new_name = generate_name(mail)
+    new_name = os.path.join(dest, new_name)
+    try:
+      shutil.move(mail, new_name)
+    except:
+      pass
+    return new_name
+
+def refile_to(path):
+    def refiler(msg, db):
+        affected = []
+        files = [str(x) for x in msg.get_filenames()]
+
+        for fn in files:
+            if md(fn) == path:
+                break
+        else:
+            for fn in files:
+              try:
+                fn2 = refile(fn, path)
+                db.add_message(fn2)
+                db.remove_message(fn)
+                affected.append(md(fn))
+                affected.append(md(fn2))
+              except:
+                pass
+            return affected
+
+        # if we get here, that means that the loop above broke
+        # in which case there is a file already in the target maildir.
+        # this means we can just delete all the non-matching files
+        # rather than refiling them all into the archive.
+        for fn in files:
+            if md(fn) != path:
+                affected.append(md(fn))
+                db.remove_message(fn)
+                os.remove(fn)
+
+        return affected
+
+    refiler.__name__='refile_to(' + path + ')'
+    return refiler
+
+def tag_headers(hmap):
+    def htagger(m, db):
+        result = []
+
+        for fn in m.get_filenames():
+            headers = Parser().parse(open(fn, 'r'))
+            for header in hmap:
+                if header in headers:
+                    tag = hmap[header](headers[header])
+                    if tag:
+                        m.add_tag(tag)
+                        result.append(md(fn))
+
+        return result
+
+    return htagger
+
+
+def sync_maildir(m, db):
+    return [md(fn) for fn in m.get_filenames()]
+
+sync_maildir.__name__='sync_maildir()'
+
+def expire(m, db):
+    result = []
+    for fn in m.get_filenames():
+        headers = Parser().parse(open(fn, 'r'))
+        d = time.mktime(parsedate(headers['Expires']))
+        if d < time.time():
+            m.remove_tag("expires")
+            m.add_tag("expired")
+
+    return result
+
+def delete(msg, db):
+    result = []
+    for fn in msg.get_filenames():
+        db.remove_message(fn)
+        result.append(md(fn))
+        os.remove(fn)
+    return result
+
+def remove_tag(tag):
+    def untagger(m, db):
+        m.remove_tag(tag)
+        return []
+    untagger.__name__ = 'untag(' + tag + ')'
+    return untagger
+
+def add_tag(tag):
+    def tagger(m, db):
+        m.add_tag(tag)
+        return []
+    tagger.__name__ = 'tag(' + tag + ')'
+    return tagger
+
+def add_regex_tag(rxs):
+    rx = re.compile(rxs)
+    def rx_tagger(m, db):
+        result = rx.findall(m.get_header('subject'))
+        if result:
+            m.add_tag(result[0])
+        return []
+    rx_tagger.__name__ = 'rx_tag(' + rxs + ')'
+    return rx_tagger
+
+def S(things):
+    def fn(m, db):
+        result = []
+        for thing in things:
+            result.extend(thing(m, db))
+        return result
+    fn.__name__ = 'S(' + ','.join(map(lambda x : x.__name__, things)) + ')'
+    return fn
+
+def restrict(query, actions):
+    def _restrict(x):
+        (Q, A) = x
+        return ( '%s AND (%s)' % (query, Q) , A )
+    return map(_restrict,  actions)
+
+def manage_inbox(me, folders):
+    actions = [
+        ('tag:inbox and not tag:sent and not folder:"%(inbox)s"' % folders, remove_tag('inbox')),
+        ('from:%s and not tag:sent' % (me,), add_tag('sent')),
+        ('folder:"%(inbox)s" AND NOT tag:inbox' % folders, refile_to(folders['archive'])),
+        ('tag:new and folder:"%(sent)s"' % folders, sync_maildir)
+    ]
+
+    return restrict('path:%(root)s/**' % folders, actions)
+
+delete_deleted = [ ('tag:deleted', delete) ]
+
+def trash_deleted(root, trash):
+    return [('tag:deleted path:%s/** -folder:"%s"' % (root, root + '/' + trash), refile_to(root + '/' + trash)),
+            ('folder:"%s" and not tag:deleted' % (root + '/' + trash, ), add_tag('deleted'))]
+
+tag_calendar = [ ('text/calendar and not tag:meeting', add_tag('meeting')) ]
+propagate_headers = [ ('tag:new', tag_headers({
+    'Importance': lambda i : i.lower() + "-importance",
+    'Expires':lambda e : "expires"
+})), ('tag:expires', expire) ]
+
+tag_account = [
+    ('tag:new and folder:/cse/', add_tag('work')),
+    ('tag:new and folder:/fm/', add_tag('home'))
+]
+
+def folders(maildir, archive='Archive', inbox='Inbox', sent='Sent Items'):
+    return {
+        'root':maildir,
+        'archive':maildir+'/'+archive,
+        'inbox':maildir+'/'+inbox,
+        'sent':maildir+'/'+sent
+    }
+
+actions = [item for l in
+           [trash_deleted('fm', 'Trash'),
+            trash_deleted('cse', 'Deleted Items'),
+            propagate_headers,
+            manage_inbox('tom.hinton@cse.org.uk', folders('cse', archive='Archives')),
+            manage_inbox('larkery.com', folders('fm')),
+            tag_calendar,
+            tag_account] for item in l]
+
+def is_maildir(maildir):
+    return '.uidvalidity' in maildir[2]
+
+def fix_uids(maildir):
+    if not is_maildir(maildir):
+        return
+    for f in ['cur', 'new', 'tmp']:
+        d = os.path.join(maildir[0], f)
+        files = os.listdir(d)
+        uids = [mbsync_uid(fn) for fn in files]
+        if len(files) != len(set(uids)):
+            print('renumber', d, file=sys.stderr)
+            for ix, fn in enumerate(sorted(zip(uids, files))):
+                new_fn = change_uid(fn[1], ix+1)
+                shutil.move(os.path.join(d, fn[1]),
+                            os.path.join(d, new_fn))
+            max_uid = len(files)
+            # fix uidvalidity
+            uvf = os.path.join(maildir[0], '.uidvalidity')
+            with open(uvf) as f:
+                lines = f.readlines()
+                print(lines, file=sys.stderr)
+            with open(uvf, 'w') as f:
+                f.writelines([lines[0], str(max_uid)])
+
+def channel_name(maildir):
+    parts = maildir.split('/')
+    channel = parts[0]
+    box = '/'.join(parts[1:])
+    if box == "Inbox": box = "INBOX"
+    return channel + ":" + box
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--verbose', help='Print verbose output to standard error', action='store_true')
+    parser.add_argument('--dry-run', help='Dry-run only; print changes but do not perform them', action='store_true')
+
+    args = parser.parse_args()
+    affected_maildirs = set()
+
+    if args.dry_run:
+        args.verbose = True
+
+    def lg(s):
+        if args.verbose: print(s, file=sys.stderr)
+
+    for query, action in actions:
+        q = db.create_query(query)
+        lg('do %s on %s' % (action.__name__, query))
+        counter = 0
+        for m in q.search_messages():
+            counter = counter + 1
+            lg('\t%s %s' % (action.__name__, m.get_message_id()))
+            if not(args.dry_run):
+                try:
+                    changed = action(m, db)
+                    lg('changed: %s' % (changed, ))
+                    affected_maildirs.update(changed)
+                except Exception:
+                    import traceback
+                    print('exception in %s on %s\n' %(action.__name__, m.get_message_id()), file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
+        lg('%d messages matched %s' % (counter, query))
+        del q
+    del db
+    lg('affected: %s' % (affected_maildirs, ))
+    for x in map(channel_name, affected_maildirs):
+        print(x)

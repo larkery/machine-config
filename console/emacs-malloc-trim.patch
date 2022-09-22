@@ -1,0 +1,29 @@
+diff --git a/src/alloc.c b/src/alloc.c
+index b86ed4ed26..65222e8825 100644
+--- a/src/alloc.c
++++ b/src/alloc.c
+@@ -7239,6 +7239,14 @@ arenas.  */)
+     error ("malloc_info failed: %s", emacs_strerror (errno));
+   return Qnil;
+ }
++
++DEFUN ("malloc-trim", Fmalloc_trim, Smalloc_trim, 0, 0, "",
++       doc: /* Call malloc_trim  */)
++  (void)
++{
++  if (malloc_trim(0) == 0) error("nothing to trim");
++  return Qnil;
++}
+ #endif
+ 
+ static bool
+@@ -7588,7 +7596,9 @@ N should be nonnegative.  */);
+   defsubr (&Smemory_use_counts);
+ #ifdef GNU_LINUX
+   defsubr (&Smalloc_info);
++  defsubr (&Smalloc_trim);
+ #endif
++
+   defsubr (&Ssuspicious_object);
+ 
+   Lisp_Object watcher;

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+go () {
+    local box="$1"
+    echo "start $box"
+    mbsync -q "$box"
+    if [[ $? -ne 0 ]]; then
+        echo "err $box"
+    fi
+    echo "end $box"
+}
+
+if [[ "$#" = 0 ]]; then
+    CACHE="${HOME}/.cache/pmbysnc-channels"
+    NOW=$(date +%s)
+    THEN=$(date -r "$CACHE" +%s)
+    D=$(( NOW - THEN ))
+
+    if [[ $D -gt 86400 ]]; then
+        echo "update channel list"
+        grep Channel ~/.mbsyncrc |
+            cut -f2 -d' ' |
+            while read chn; do
+                mbsync -l $chn | sed 's/.*/'"$chn:"'&/'
+            done | sort | uniq > "$CACHE"
+    fi
+    while read box; do
+        go "$box" &
+    done < "$CACHE"
+else
+    while read box; do
+        if [[ -n $box ]]; then
+            go "$box" &
+        fi
+    done < <(printf "%s\n" "$@" | sed 's/Inbox/\U&/' | sort -u)
+fi
+
+wait

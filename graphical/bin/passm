@@ -1,0 +1,195 @@
+#!/run/current-system/sw/bin/perl
+
+use strict;
+use warnings;
+use v5.24;
+
+use Getopt::Long;
+use Pod::Usage;
+use IPC::Open2;
+use File::Find;
+use File::Spec;
+
+my @fields = ();
+my $do_copy;
+my $do_print;
+my $credentials;
+my $do_open;
+my $help;
+
+$ENV{GPG_TTY}="/dev/tty";
+$ENV{TERM}="vt100";
+
+GetOptions(
+    "copy" => \$do_copy,
+    "print" => \$do_print,
+    "credentials-file=s" => \$credentials,
+    "open" => \$do_open,
+    "field=s" => \@fields,
+    "help|?" => \$help
+    ) or pod2usage(2);
+
+pod2usage(1) if $help;
+
+$do_open = $do_open ||
+    !($do_copy || $do_print || $credentials || $help);
+
+# read with rofi better than with yad?
+sub ask_for_entry {
+    my $yad_pid = open2(
+        my $yad_out, my $yad_in,
+        "rofi",
+        "-dmenu",
+        "-p", "password",
+        "-no-custom",
+        "-async-pre-read", "0"
+        );
+    my $store = $ENV{"HOME"} . "/.password-store";
+    find(
+        sub {
+            $File::Find::prune = 1 if /^\.git/;
+            my $dir = File::Spec->abs2rel($File::Find::dir, $store);
+            if ($dir eq ".") {
+                $dir = "";
+            } else {
+                $dir = $dir . "/";
+            }
+            if (/\.gpg$/) {
+                s/\.gpg$//;
+                print $yad_in "$dir$_\n";
+            }
+        },
+        $store);
+    flush $yad_in;
+    close $yad_in;
+    my $result = <$yad_out>;
+    waitpid($yad_pid, 0);
+    $result =~ s/\n//;
+    return $result;
+}
+
+my $entry = $ARGV[0];
+$entry = ask_for_entry() unless $entry;
+
+exit unless $entry;
+
+push @fields, "password" unless scalar @fields;
+
+my ($password, @data) = `pass show "$entry"` or die('error from invoking pass');
+
+chomp $password;
+
+my $notes = "";
+my %fieldvals = ();
+
+$fieldvals{'password'} = $password;
+
+for my $datum (@data) {
+    chomp $datum;
+    if ($datum =~ /([^:]+):(.+)/) {
+        $fieldvals{$1} = $2;
+    } else {
+        $notes = $notes . $datum . "\n";
+    }
+}
+
+for my $field (@fields) {
+    my $value = $fieldvals{$field};
+    if ($value) {
+        say $value if $do_print;
+        # copy to clipboard
+        if ($do_copy) {
+            system 'notify-send', $entry, "copied $field";
+            open(my $xclip, "| xclip -quiet -l 1 -selection primary");
+            print $xclip $value;
+            close($xclip);
+        }
+    }
+}
+
+if ($credentials) {
+    open(my $fh, '>', $credentials);
+    my $un = $fieldvals{'smb-username'} || $fieldvals{'username'} || $fieldvals{'user'};
+    print $fh "username=" . $un . "\n" if $un;
+    print $fh "domain=" . $fieldvals{'smb-domain'} . "\n" if $fieldvals{'smb-domain'};
+    print $fh "password=" . $fieldvals{'password'} . "\n" if $fieldvals{'password'};
+    close($fh);
+    # we need to kill the file later
+    my $pid;
+    open STDIN, '/dev/null';
+    open STDOUT, '>>/dev/null';
+    open STDERR, '>>/dev/null';
+    unless ($pid = fork) {
+        unless (fork) {
+            sleep 5;
+            unlink $credentials;
+            exit 0;
+        }
+        exit 0;
+    }
+    waitpid($pid, 0);
+}
+
+if ($do_open) {
+    sub xtype {
+        my $text = shift;
+        open(my $fh, "|-:encoding(utf-8)", "xte");
+        print $fh "str $text\n";
+        close $fh;
+    }
+
+    my @args = ("yad", "--class", "password-input", "--mouse", "--title", "pass: $entry", "--text", "<b>$entry</b>", "--form");
+    
+    if ($notes) {
+        push @args, "--height=400";
+        push @args, "--width=400";
+        push @args, "--columns=1";
+        push @args, "$notes";
+        push @args, "--field=Notes:txt";
+    } else {
+        push @args, "--width=200";
+        push @args, "--columns=1";
+    }
+    
+    for my $field (sort keys %fieldvals) {
+        if ($field eq "url") {
+            push @args, "--button=Login page:echo '$field'";
+        } elsif ($field eq "browser") {
+        } else {
+            push @args, "--field=$field:fbtn";
+            push @args, "echo '$field'";
+        }
+    }
+
+    push @args, "--button=Cancel!gtk-cancel:0";
+    push @args, "--on-top";
+    push @args, "--no-focus";
+    push @args, "--borders=8";
+    
+    open(my $yad, '-|:encoding(utf-8)', @args);
+    while (<$yad>) {
+        chomp;
+        if ($_ eq "url") {
+            my $url = $fieldvals{$_};
+
+            unless ($url =~ /:/) {
+                $url = "http://$url";
+            }
+
+            my $browser = $fieldvals{"browser"} || "xdg-open";
+            
+            system $browser, ($url)
+        } else {
+            xtype $fieldvals{$_} if $fieldvals{$_};
+        }
+    }
+}
+
+__END__
+=head1 NAME
+
+passm - a pass wrapper
+
+=head1 SYNOPSIS
+
+passm [--copy] [--print] [--open] [--field x]* [--credentials-file <path>] entry-name
