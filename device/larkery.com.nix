@@ -10,6 +10,8 @@
   boot.loader.timeout = 10;
   boot.loader.grub.forceInstall = true;
 
+  networking.hostname = "larkery";
+
   boot.kernelParams = ["console=ttyS0,19200n8"];
   boot.loader.grub.extraConfig = ''
     serial --speed=19200 --unit=0 --word=8 --partiy=no --stop=1;
