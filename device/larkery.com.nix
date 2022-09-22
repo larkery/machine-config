@@ -37,9 +37,21 @@
       enableACME = true;
       forceSSL = true;
       root = "/data/web/larkery.com";
+
+      locations."/tty" = {
+        proxyPass = "http://localhost:8080";
+      };
     };
   };
 
+  systemd.services.gotty_tmux = {
+    wantedBy = ["multi-user.target"];
+    
+    serviceConfig = {
+      ExecStart = "${pkgs.gotty}/bin/gotty -w -a 127.0.0.1 /run/current-system/sw/bin/login";
+    };
+  };
+  
   networking.firewall.allowedTCPPorts = [2223 80 443];
   
   system.stateVersion = "18.09";
