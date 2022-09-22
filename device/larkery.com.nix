@@ -40,7 +40,11 @@
       forceSSL = true;
       root = "/data/web/larkery.com";
 
-      locations."/tty" = {
+      locations."/tty/" = {
+        extraConfig = ''
+	         rewrite ^/tty/?$ / break;
+	         rewrite ^/tty/(.*)$ /$1 break;
+        '';
         proxyPass = "http://localhost:8080";
         proxyWebsockets = true;
       };
