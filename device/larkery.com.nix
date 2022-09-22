@@ -55,8 +55,7 @@
     wantedBy = ["multi-user.target"];
     
     serviceConfig = {
-      User="hinton";
-      ExecStart = "${pkgs.gotty}/bin/gotty -w -a 127.0.0.1 /run/current-system/sw/bin/login hinton";
+      ExecStart = "${pkgs.gotty}/bin/gotty -w -a 127.0.0.1 ${pkgs.shadow}/bin/login hinton";
     };
   };
   
