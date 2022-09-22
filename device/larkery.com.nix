@@ -49,7 +49,7 @@
     
     serviceConfig = {
       User="hinton";
-      ExecStart = "${pkgs.gotty}/bin/gotty -w -a 127.0.0.1 /run/current-system/sw/bin/zsh";
+      ExecStart = "${pkgs.gotty}/bin/gotty -w -a 127.0.0.1 /run/current-system/sw/bin/login";
     };
   };
   
