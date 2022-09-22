@@ -40,6 +40,7 @@
 
       locations."/tty" = {
         proxyPass = "http://localhost:8080";
+        proxyWebsockets = true;
       };
     };
   };
