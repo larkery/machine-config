@@ -13,6 +13,8 @@
     ./shell.nix
     ./emacs.nix
   ];
+
+  home-manager.users.hinton.services.syncthing.enable = true;
   
   users.users.hinton = {
     extraGroups =
