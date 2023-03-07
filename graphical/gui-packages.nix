@@ -68,8 +68,15 @@
 
     (pkgs.writeScriptBin "passm" (with pkgs; ''
     #!${pkgs.bash}/bin/bash
-    PATH=$PATH:${lib.makeSearchPath "bin" [pass yad xautomation xclip rofi]}
-    exec ${pkgs.perl}/bin/perl ${./bin/passm} "$@"
+    PATH=$PATH:${lib.makeSearchPath "bin" [
+      yad xautomation xclip rofi
+      (pkgs.python3.withPackages (ps : [
+        ps.pykeepass
+        ps.secretstorage
+        ps.tkinter
+      ]))
+    ]}
+    exec $python3 ${./bin/passm} "$@"
   ''))
   ];
 }

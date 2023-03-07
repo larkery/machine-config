@@ -5,6 +5,7 @@
     ./vpn.nix
     ../graphical
     ../console
+    ./boot.nix
   ];
 
   powerManagement.enable = true;
@@ -27,6 +28,7 @@
   
   networking.extraHosts = ''
     62.232.139.117 buzz.cse.org.uk buzz
+    40.68.36.51 bbh-thermos.cse.org.uk
   '';
 
   ## x230 specific junk
@@ -46,7 +48,7 @@
     fsType = "cifs";
     options = let
       # this line prevents hanging on network split
-      automount_opts = "noauto,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.device-timeout=2,x-systemd.mount-timeout=2";
+      automount_opts = "echo_interval=10,noauto,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.device-timeout=2,x-systemd.mount-timeout=2";
 
     in ["${automount_opts},credentials=/etc/nixos/smb-secrets,iocharset=utf8,nostrictsync,noperm,uid=hinton,noexec"];
   };

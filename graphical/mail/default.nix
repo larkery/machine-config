@@ -49,6 +49,7 @@ in
     if [[ $NEW -gt 0 ]]; then
     ${pkgs.libnotify}/bin/notify-send -i mail-client "$NEW message(s)" "$(notmuch search --format=json tag:new and tag:inbox and is:unread | jq -r '.[] | "<b>\(.authors|split("[|,] *"; "g")|.[0])</b>: \(.subject)"')"
     fi
+    notmuch show  --format=json "to:workoutbristol@larkery.com" "subject:Your Registration" | jq  -r '.[]|.[]|.[]|select(type=="object")|{id:.id} + (.body|..|.content?|select(type=="string")|select(test("^Thank you")) | match("Thank you for registering for (.+)\\..+you on (.+)\\.")|{it:.captures[0].string, at:.captures[1].string}) | "* \(.it)\n:PROPERTIES:\n:ID: \(.id)\n:END:\n<\(.at)>\n"' > ~/notes/agenda/gym.org
     notmuch tag -new -- tag:new
     if [[ -z $NO_SYNC ]] && [[ ''${#CHANGED[@]} -gt 1 ]]; then
     pmbsync "''${CHANGED[@]}"

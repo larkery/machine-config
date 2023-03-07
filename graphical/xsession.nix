@@ -64,6 +64,10 @@
 
       window.commands = [
         {
+          criteria.window_role = "GtkFileChooserDialog";
+          command = "floating disable, focus";
+        }
+        {
           command = "floating enable, move position mouse";
           criteria.class = "password-input|Yad";
         }

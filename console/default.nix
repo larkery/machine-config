@@ -15,10 +15,12 @@
   ];
 
   home-manager.users.hinton.services.syncthing.enable = true;
+
+  programs.ssh.startAgent = true;
   
   users.users.hinton = {
     extraGroups =
-      [ "wheel" "networkmanager" "video" "vboxusers"];
+      [ "wheel" "networkmanager" "video" "vboxusers" "dialout" ];
       isNormalUser = true;
       uid = 1000;
       shell = pkgs.zsh;

@@ -63,7 +63,7 @@
 
   home-manager.users.hinton.imports = [
     ./xsession.nix
-    ./gpg.nix
+    # ./gpg.nix
     ./gui-packages.nix
     ./mail
   ];
@@ -75,6 +75,35 @@
   };
 
   nixpkgs.overlays = [
+    (self : super :
+    let sasl-path = "${super.cyrus_sasl.out.outPath}/lib/sasl2:${self.cyrus_sasl_xoauth2}/lib/sasl2"; in
+    {
+      cyrus_sasl_xoauth2 = super.callPackage ./cyrus-sasl-xoauth2.nix {};
+
+      msmtp = super.buildEnv {
+        name = "msmtp";
+        paths = [super.msmtp];
+        pathsToLink = ["/bin"];
+        nativeBuildInputs = [super.makeWrapper];
+        postBuild = ''
+          wrapProgram "$out/bin/msmtp" --prefix SASL_PATH : "${sasl-path}"
+          wrapProgram "$out/bin/msmtpd" --prefix SASL_PATH : "${sasl-path}"
+          wrapProgram "$out/bin/msmtpq" --prefix SASL_PATH : "${sasl-path}"
+          wrapProgram "$out/bin/msmtp-queue" --prefix SASL_PATH : "${sasl-path}"
+        '';
+      };
+      
+      isync = super.buildEnv {
+        name = "isync";
+        paths = [super.isync];
+        pathsToLink = ["/bin"];
+        nativeBuildInputs = [super.makeWrapper];
+        postBuild = ''
+          wrapProgram "$out/bin/mbsync" --prefix SASL_PATH : "${sasl-path}"
+        '';
+      };
+    })
+    
     (self : super : {
       xdg_override = pkgs.writeScriptBin "xdg-open" ''
         #!${pkgs.zsh}/bin/zsh

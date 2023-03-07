@@ -5,14 +5,15 @@ let
   # overlay-version = "c185db9302bd83c1d73029f3da6dc2e5fc79edde";
   # overlay-version = "5a501bb198eb96a327cdd3275608305d767e489d";
   # overlay-version = "e8bcf0ddb6fe849c8eead988eaf837b68e6019a7";
-  overlay-version = "a764f50d7667f54e275ec1260de2f8d97b677525";
+  # overlay-version = "a764f50d7667f54e275ec1260de2f8d97b677525";
+  overlay-version = "0e8abd1a198a954a1206b0306c10285da76a1d1a";
   nc-emacs = import (builtins.fetchTarball {
     url = "https://github.com/nix-community/emacs-overlay/archive/${overlay-version}.tar.gz";
   });
   np-emacs = import np {
       overlays = [ nc-emacs ];
   };
-  patchedEmacsGcc = np-emacs.emacsGcc.overrideAttrs (a : {
+  patchedEmacsGcc = np-emacs.emacsUnstable.overrideAttrs (a : {
     patches = a.patches ++ [./emacs-malloc-trim.patch];
   });
 in
